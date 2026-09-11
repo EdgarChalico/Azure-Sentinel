@@ -1,0 +1,337 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "metadata": {
+        "title": "Delinea - Enrich Mass Secret Access Incident",
+        "description": "This playbook is triggered when Microsoft Sentinel creates an incident (designed for the 'Delinea - Mass secret access (secret hoarding)' analytic rule). For each Account entity on the incident it queries the DelineaAuditEvents_CL table for that user's recent Delinea Platform activity (event types, distinct secrets viewed, source IPs and timeframe) and posts the summary back to the incident as a comment to accelerate triage.",
+        "prerequisites": [
+            "1. The Delinea Platform data connector must be enabled and the DelineaAuditEvents_CL table must be receiving data.",
+            "2. The 'Delinea - Mass secret access (secret hoarding)' analytic rule should be enabled so it creates incidents with Account entities."
+        ],
+        "postDeployment": [
+            "1. Authorize the 'Microsoft Sentinel' (azuresentinel) and 'Azure Monitor Logs' (azuremonitorlogs) API connections after deployment.",
+            "2. Grant the playbook's managed identity the 'Microsoft Sentinel Responder' role on the workspace so it can add incident comments, and the 'Log Analytics Reader' (or 'Reader') role so it can run the enrichment query.",
+            "3. Attach this playbook to the analytic rule via an automation rule (Run playbook action) so it runs automatically when an incident is created."
+        ],
+        "prerequisitesDeployTemplateFile": "",
+        "lastUpdateTime": "2026-06-19",
+        "entities": [
+            "Account"
+        ],
+        "tags": [
+            "Enrichment",
+            "IncidentUpdate",
+            "Delinea"
+        ],
+        "support": {
+            "tier": "partner"
+        },
+        "author": {
+            "name": "Delinea"
+        },
+        "version": "1.0.0",
+        "releaseNotes": [
+            {
+                "version": "1.0.0",
+                "title": "Delinea - Enrich Mass Secret Access Incident",
+                "notes": [
+                    "Initial version"
+                ]
+            }
+        ],
+        "requiredConnections": [
+            {
+                "connectorId": "azuresentinel",
+                "permissions": {
+                    "read": true,
+                    "write": true
+                }
+            },
+            {
+                "connectorId": "azuremonitorlogs",
+                "permissions": {
+                    "read": true
+                }
+            }
+        ]
+    },
+    "parameters": {
+        "PlaybookName": {
+            "defaultValue": "Delinea-EnrichMassSecretAccessIncident",
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Logic App / playbook resource."
+            }
+        },
+        "WorkspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Log Analytics workspace that Microsoft Sentinel is enabled on (where DelineaAuditEvents_CL resides)."
+            }
+        },
+        "WorkspaceResourceGroup": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().name]",
+            "metadata": {
+                "description": "Resource group of the Log Analytics workspace."
+            }
+        },
+        "WorkspaceSubscriptionId": {
+            "type": "string",
+            "defaultValue": "[subscription().subscriptionId]",
+            "metadata": {
+                "description": "Subscription id of the Log Analytics workspace."
+            }
+        }
+    },
+    "variables": {
+        "AzureSentinelConnectionName": "[concat('azuresentinel-', parameters('PlaybookName'))]",
+        "AzureMonitorLogsConnectionName": "[concat('azuremonitorlogs-', parameters('PlaybookName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[variables('AzureSentinelConnectionName')]",
+            "location": "[resourceGroup().location]",
+            "kind": "V1",
+            "properties": {
+                "displayName": "[variables('AzureSentinelConnectionName')]",
+                "customParameterValues": {},
+                "parameterValueType": "Alternative",
+                "api": {
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[variables('AzureMonitorLogsConnectionName')]",
+            "location": "[resourceGroup().location]",
+            "kind": "V1",
+            "properties": {
+                "displayName": "[variables('AzureMonitorLogsConnectionName')]",
+                "customParameterValues": {},
+                "parameterValueType": "Alternative",
+                "api": {
+                    "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuremonitorlogs')]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Logic/workflows",
+            "apiVersion": "2017-07-01",
+            "name": "[parameters('PlaybookName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "hidden-SentinelTemplateName": "Delinea-EnrichMassSecretAccessIncident",
+                "hidden-SentinelTemplateVersion": "1.0.0"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]",
+                "[resourceId('Microsoft.Web/connections', variables('AzureMonitorLogsConnectionName'))]"
+            ],
+            "properties": {
+                "state": "Enabled",
+                "definition": {
+                    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "$connections": {
+                            "defaultValue": {},
+                            "type": "Object"
+                        },
+                        "WorkspaceName": {
+                            "defaultValue": "[parameters('WorkspaceName')]",
+                            "type": "string"
+                        },
+                        "WorkspaceResourceGroup": {
+                            "defaultValue": "[parameters('WorkspaceResourceGroup')]",
+                            "type": "string"
+                        },
+                        "WorkspaceSubscriptionId": {
+                            "defaultValue": "[parameters('WorkspaceSubscriptionId')]",
+                            "type": "string"
+                        }
+                    },
+                    "triggers": {
+                        "Microsoft_Sentinel_incident": {
+                            "type": "ApiConnectionWebhook",
+                            "inputs": {
+                                "body": {
+                                    "callback_url": "@{listCallbackUrl()}"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "path": "/incident-creation"
+                            }
+                        }
+                    },
+                    "actions": {
+                        "Entities_-_Get_Accounts": {
+                            "runAfter": {},
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": "@triggerBody()?['object']?['properties']?['relatedEntities']",
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/entities/account"
+                            }
+                        },
+                        "Initialize_variable_-_CommentBody": {
+                            "runAfter": {
+                                "Entities_-_Get_Accounts": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "InitializeVariable",
+                            "inputs": {
+                                "variables": [
+                                    {
+                                        "name": "CommentBody",
+                                        "type": "string",
+                                        "value": "<h3>Delinea Platform - Mass secret access enrichment</h3><p>Recent Delinea activity (last 24h) for the account(s) on this incident:</p>"
+                                    }
+                                ]
+                            }
+                        },
+                        "For_each_account": {
+                            "runAfter": {
+                                "Initialize_variable_-_CommentBody": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "Foreach",
+                            "foreach": "@body('Entities_-_Get_Accounts')?['Accounts']",
+                            "actions": {
+                                "Run_query_and_list_results": {
+                                    "runAfter": {},
+                                    "type": "ApiConnection",
+                                    "inputs": {
+                                        "body": "let actor = \"@{items('For_each_account')?['Name']}\";\nDelineaAuditEvents_CL\n| where TimeGenerated > ago(24h)\n| extend d = parse_json(RawData)\n| where User == actor\n| extend EventName = tostring(d.eventType.name), SrcIP = tostring(d.source.network.ipAddress)\n| summarize Events = count(), DistinctSecrets = dcount(SecretId), SourceIPs = dcount(SrcIP), FirstSeen = min(TimeGenerated), LastSeen = max(TimeGenerated) by EventName\n| top 20 by Events desc",
+                                        "host": {
+                                            "connection": {
+                                                "name": "@parameters('$connections')['azuremonitorlogs']['connectionId']"
+                                            }
+                                        },
+                                        "method": "post",
+                                        "path": "/queryData",
+                                        "queries": {
+                                            "resourcegroups": "@parameters('WorkspaceResourceGroup')",
+                                            "resourcename": "@parameters('WorkspaceName')",
+                                            "resourcetype": "Log Analytics Workspace",
+                                            "subscriptions": "@parameters('WorkspaceSubscriptionId')",
+                                            "timerange": "Last 24 hours"
+                                        }
+                                    }
+                                },
+                                "Append_account_header": {
+                                    "runAfter": {
+                                        "Run_query_and_list_results": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "AppendToStringVariable",
+                                    "inputs": {
+                                        "name": "CommentBody",
+                                        "value": "<h4>User: @{items('For_each_account')?['Name']}</h4><table border=\"1\"><tr><th>Event</th><th>Events</th><th>Distinct secrets</th><th>Source IPs</th><th>First seen</th><th>Last seen</th></tr>"
+                                    }
+                                },
+                                "For_each_result_row": {
+                                    "runAfter": {
+                                        "Append_account_header": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "Foreach",
+                                    "foreach": "@body('Run_query_and_list_results')?['value']",
+                                    "actions": {
+                                        "Append_result_row": {
+                                            "runAfter": {},
+                                            "type": "AppendToStringVariable",
+                                            "inputs": {
+                                                "name": "CommentBody",
+                                                "value": "<tr><td>@{items('For_each_result_row')?['EventName']}</td><td>@{items('For_each_result_row')?['Events']}</td><td>@{items('For_each_result_row')?['DistinctSecrets']}</td><td>@{items('For_each_result_row')?['SourceIPs']}</td><td>@{items('For_each_result_row')?['FirstSeen']}</td><td>@{items('For_each_result_row')?['LastSeen']}</td></tr>"
+                                            }
+                                        }
+                                    }
+                                },
+                                "Append_account_footer": {
+                                    "runAfter": {
+                                        "For_each_result_row": [
+                                            "Succeeded"
+                                        ]
+                                    },
+                                    "type": "AppendToStringVariable",
+                                    "inputs": {
+                                        "name": "CommentBody",
+                                        "value": "</table>"
+                                    }
+                                }
+                            }
+                        },
+                        "Add_comment_to_incident_(V3)": {
+                            "runAfter": {
+                                "For_each_account": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "body": {
+                                    "incidentArmId": "@triggerBody()?['object']?['id']",
+                                    "message": "@variables('CommentBody')"
+                                },
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['azuresentinel']['connectionId']"
+                                    }
+                                },
+                                "method": "post",
+                                "path": "/Incidents/Comment"
+                            }
+                        }
+                    },
+                    "outputs": {}
+                },
+                "parameters": {
+                    "$connections": {
+                        "value": {
+                            "azuresentinel": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('AzureSentinelConnectionName'))]",
+                                "connectionName": "[variables('AzureSentinelConnectionName')]",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                }
+                            },
+                            "azuremonitorlogs": {
+                                "connectionId": "[resourceId('Microsoft.Web/connections', variables('AzureMonitorLogsConnectionName'))]",
+                                "connectionName": "[variables('AzureMonitorLogsConnectionName')]",
+                                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuremonitorlogs')]",
+                                "connectionProperties": {
+                                    "authentication": {
+                                        "type": "ManagedServiceIdentity"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ]
+}
