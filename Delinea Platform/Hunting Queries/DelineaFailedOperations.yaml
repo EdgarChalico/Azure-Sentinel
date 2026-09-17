@@ -1,0 +1,42 @@
+id: 29231a10-e272-4854-b191-a2d2db4279fa
+name: Delinea - Failed operations
+description: |
+  Surfaces every failed, denied, or errored operation across all Delinea Platform services over the
+  lookback window, with no alerting threshold applied. Failures are identified from failed MFA / password
+  factors, any login fail reason, or an event name / message containing failed / error / denied /
+  unauthorized. Unlike the 'Failed authentication spike' rule (auth only, above a tuned threshold) this
+  hunting query is service-wide and shows everything, so an analyst can spot scattered authorization
+  failures, repeated errors against a resource, or low-and-slow access attempts.
+requiredDataConnectors:
+  - connectorId: DelineaPlatformConnector
+    dataTypes:
+      - DelineaAuditEvents_CL
+tactics:
+  - CredentialAccess
+relevantTechniques:
+  - T1110
+query: |
+  let lookback = 24h;
+  DelineaAuditEvents_CL
+  | where TimeGenerated > ago(lookback)
+  | extend d = parse_json(RawData)
+  | extend EventName = tostring(d.eventType.name), Msg = tostring(d.displayMessage),
+           SrcIP = tostring(d.source.host.network.ipAddress),
+           MfaResult = tostring(d.additionalAttributes.MfaResult[0]),
+           FactorPassword = tostring(d.additionalAttributes.FactorPassword[0]),
+           FailReason = tostring(d.additionalAttributes.FailReason[0])
+  | where MfaResult == "Failed" or FactorPassword == "Failed" or isnotempty(FailReason)
+      or EventName has_any ("Failed", "Failure", "Error", "Denied", "Unauthorized", "Rejected")
+      or Msg has_any ("failed", "failure", "denied", "unauthorized", "rejected", "error")
+  | project TimeGenerated, User, Service, EventName, Level, Msg, FailReason, SrcIP
+  | sort by TimeGenerated desc
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: User
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIP
+version: 1.0.0
