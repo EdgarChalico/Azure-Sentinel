@@ -36,9 +36,6 @@
         "Hunting Queries/DelineaOffHoursPrivilegedActivity.yaml",
         "Hunting Queries/DelineaRareEventTypes.yaml"
     ],
-    "Playbooks": [
-        "Playbooks/Delinea-EnrichMassSecretAccessIncident/azuredeploy.json"
-    ],
     "BasePath": ".",
     "Version": "3.0.0",
     "Metadata": "SolutionMetadata.json",
