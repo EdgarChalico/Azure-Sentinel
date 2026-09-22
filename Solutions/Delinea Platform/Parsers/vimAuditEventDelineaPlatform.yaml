@@ -1,7 +1,7 @@
 id: 94c033f2-24ba-49f2-bd96-2a19d4535f84
 Function:
   Title: Audit Event ASIM filtering parser for Delinea Platform
-  Version: '1.1.0'
+  Version: '1.1.1'
   LastUpdated: '2026-08-31'
 Category: Microsoft Sentinel Parser
 FunctionName: vimAuditEventDelineaPlatform
@@ -216,7 +216,10 @@ FunctionQuery: |
               tostring(DelineaActor.type) in~ ('service', 'serviceuser', 'application'), 'Service Principal',
               'Other'),
           ActorSessionId = tostring(DelineaEvent.sessionId),
-          Object = tostring(coalesce(DelineaTarget.name, DelineaTarget.displayName, DelineaTarget.containerName, SecretId)),
+          // SecretId is a promoted string column while the target fields are dynamic, so
+          // each is converted before coalesce - a mixed argument list is rejected. coalesce
+          // skips empty strings, so the name / displayName / containerName / SecretId order holds.
+          Object = coalesce(tostring(DelineaTarget.name), tostring(DelineaTarget.displayName), tostring(DelineaTarget.containerName), SecretId),
           ObjectId = tostring(DelineaTarget.id),
           SrcIpAddr = iff(DelineaSrcIpAddr in ('', '0.0.0.0'), '', DelineaSrcIpAddr),
           SrcHostname = tostring(DelineaSourceHost.machineName),
