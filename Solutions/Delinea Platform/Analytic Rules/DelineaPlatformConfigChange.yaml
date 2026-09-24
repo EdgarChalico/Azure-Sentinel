@@ -1,0 +1,56 @@
+id: 7c07194a-8eda-4cb7-9bc4-cd4700eb4c4d
+name: Delinea - Platform configuration change
+description: |
+  Detects modifications to critical Delinea platform settings - authentication profiles,
+  security / access policies, SSO or identity-provider (SAML / OIDC / federation) configuration,
+  IP range / restriction rules, and integration / webhook / connector settings. Read-only "viewed"
+  events are excluded so only state-changing actions (add / update / delete / enable / disable) are
+  surfaced. Configuration tampering is frequently a precursor to defense evasion or persistence.
+  Tune 'configPattern' and 'changeVerbs' to your tenant's event taxonomy.
+severity: Medium
+status: Available
+requiredDataConnectors:
+  - connectorId: DelineaPlatformConnector
+    dataTypes:
+      - DelineaAuditEvents_CL
+queryFrequency: 15m
+queryPeriod: 30m
+triggerOperator: gt
+triggerThreshold: 0
+tactics:
+  - DefenseEvasion
+  - Persistence
+relevantTechniques:
+  - T1556
+  - T1484
+  - T1098
+query: |
+  let configPattern = @"(?i)policy|profile|authentication|\bsso\b|saml|oidc|oauth|federation|identityprovider|\bidp\b|iprange|iprestriction|webhook|integration|connector|setting|configuration";
+  let changeVerbs = @"(?i)\.(Added|Created|Updated|Modified|Changed|Set|Deleted|Removed|Enabled|Disabled)$|(added|created|updated|modified|changed|deleted|removed|enabled|disabled|configured)";
+  DelineaAuditEvents_CL
+  | where TimeGenerated > ago(30m)
+  | where ingestion_time() > ago(15m)
+  | extend d = parse_json(RawData)
+  | extend EventName = tostring(d.eventType.name), Actor = tostring(d.actor.name),
+           Target = tostring(d.target.displayName), Msg = tostring(d.displayMessage),
+           SrcIP = tostring(d.source.host.network.ipAddress), FieldChanges = tostring(d.fieldChanges)
+  | where (EventName matches regex configPattern or Msg matches regex configPattern)
+      and (EventName matches regex changeVerbs or Msg matches regex changeVerbs)
+      and EventName !has "Viewed" and Msg !has "viewed"
+  | project TimeGenerated, EventName, Actor, Target, Msg, SrcIP, FieldChanges
+  | sort by TimeGenerated desc
+entityMappings:
+  - entityType: Account
+    fieldMappings:
+      - identifier: Name
+        columnName: Actor
+  - entityType: IP
+    fieldMappings:
+      - identifier: Address
+        columnName: SrcIP
+customDetails:
+  EventName: EventName
+  Target: Target
+  Message: Msg
+version: 1.1.0
+kind: Scheduled
