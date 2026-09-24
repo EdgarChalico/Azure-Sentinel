@@ -6,7 +6,7 @@
     "config": {
       "isWizard": false,
       "basics": {
-        "description": "<img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/DelineaLogo.svg\"width=\"75px\" height=\"75px\">\n\n**Note:** Please refer to the following before installing the solution: \n\n• Review the solution [Release Notes](https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/Delinea%20Platform/ReleaseNotes.md)\n\n • There may be [known issues](https://aka.ms/sentinelsolutionsknownissues) pertaining to this Solution, please refer to them before installing.\n\nThe **Delinea Platform** solution ingests privileged-access audit events (secret access, session recording, user activity, configuration changes) into Microsoft Sentinel via the Codeless Connector Framework.\n\n**Data Connectors:** 1, **Parsers:** 2, **Workbooks:** 4, **Analytic Rules:** 6, **Hunting Queries:** 10, **Playbooks:** 1\n\n[Learn more about Microsoft Sentinel](https://aka.ms/azuresentinel) | [Learn more about Solutions](https://aka.ms/azuresentinelsolutionsdoc)",
+        "description": "<img src=\"https://raw.githubusercontent.com/Azure/Azure-Sentinel/master/Logos/DelineaLogo.svg\"width=\"75px\" height=\"75px\">\n\n**Note:** Please refer to the following before installing the solution: \n\n• Review the solution [Release Notes](https://github.com/Azure/Azure-Sentinel/tree/master/Solutions/Delinea%20Platform/ReleaseNotes.md)\n\n • There may be [known issues](https://aka.ms/sentinelsolutionsknownissues) pertaining to this Solution, please refer to them before installing.\n\nThe **Delinea Platform** solution ingests privileged-access audit events (secret access, session recording, user activity, configuration changes) into Microsoft Sentinel via the Codeless Connector Framework.\n\n**Data Connectors:** 1, **Parsers:** 2, **Workbooks:** 4, **Analytic Rules:** 6, **Hunting Queries:** 10\n\n[Learn more about Microsoft Sentinel](https://aka.ms/azuresentinel) | [Learn more about Solutions](https://aka.ms/azuresentinelsolutionsdoc)",
         "subscription": {
           "resourceProviders": [
             "Microsoft.OperationsManagement/solutions",
@@ -104,13 +104,13 @@
           {
             "name": "workbook1",
             "type": "Microsoft.Common.Section",
-            "label": "Identity & Authentication Overview",
+            "label": "Delinea Platform — Identity & Authentication Overview",
             "elements": [
               {
                 "name": "workbook1-text",
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
-                  "text": "Login, session and multi-factor authentication activity ingested from the Delinea Platform (DelineaAuditEvents_CL). Use the time range selector to scope the dashboard."
+                  "text": "Login, session and multi-factor authentication activity from the Delinea Platform: authentication summary tiles, login volume and MFA results over time, top users and source IP addresses, client operating system distribution, and MFA failure reasons."
                 }
               }
             ]
@@ -118,13 +118,13 @@
           {
             "name": "workbook2",
             "type": "Microsoft.Common.Section",
-            "label": "Vault Activity",
+            "label": "Delinea Platform — Secret Server Vault Activity",
             "elements": [
               {
                 "name": "workbook2-text",
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
-                  "text": "Privileged secret access and vault activity from the Delinea Platform (DelineaAuditEvents_CL). Shows which secrets are accessed, by whom, and from where."
+                  "text": "Secret vault activity from the Delinea Platform: vault activity summary, secret activity over time by action, most-accessed secrets, top users accessing secrets, action breakdown, and a recent secret access detail table."
                 }
               }
             ]
@@ -132,13 +132,13 @@
           {
             "name": "workbook3",
             "type": "Microsoft.Common.Section",
-            "label": "Privileged Access Threat Hunting",
+            "label": "Delinea Platform — Privileged Access Threat Hunting",
             "elements": [
               {
                 "name": "workbook3-text",
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
-                  "text": "Hunting queries over Delinea Platform audit events (DelineaAuditEvents_CL) for suspicious authentication and secret-access behaviour. Each tile is a starting point for investigation - tune thresholds to your environment."
+                  "text": "Threat hunting over Delinea Platform privileged access telemetry: failed MFA followed by success (possible push fatigue or brute force), users authenticating from multiple source IPs, rare user and source-IP pairs, a single source IP reaching many distinct secrets, off-hours secret access, and users accessing an unusually high number of distinct secrets."
                 }
               }
             ]
@@ -146,13 +146,13 @@
           {
             "name": "workbook4",
             "type": "Microsoft.Common.Section",
-            "label": "User Activity Investigation",
+            "label": "Delinea Platform — User Activity Investigation",
             "elements": [
               {
                 "name": "workbook4-text",
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
-                  "text": "Select a user to review their full activity across the Delinea Platform (DelineaAuditEvents_CL): authentication, secret access, source IPs and event timeline. Use this during incident response to answer 'what did this account do?'."
+                  "text": "Per-user investigation view over Delinea Platform audit events: activity summary and timeline by service for a selected user, event type breakdown, secrets accessed, source IP addresses used, MFA history, and a raw event timeline."
                 }
               }
             ]
@@ -222,7 +222,7 @@
                 "name": "analytic3-text",
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
-                  "text": "Detects when a single account accumulates an unusually high number of failed authentication\nevents within a short window. Failed authentications are identified from Delinea Identity MFA\nevents where the MFA result or password factor failed, or any login fail reason is present.\nA burst of failures for one account can indicate brute-force or credential-stuffing activity.\nTune 'threshold' to your environment."
+                  "text": "Detects when a single account accumulates an unusually high number of failed authentication\nevents within a short window. Only authentication events - MFA, login and sign-in - are\nconsidered; the service-wide view of every failure lives in the 'Delinea - Failed operations'\nhunting query. A failure is a failed MFA result, a failed password factor, or any login fail\nreason. A burst of failures for one account can indicate brute-force or credential-stuffing\nactivity. Tune 'threshold' to your environment."
                 }
               }
             ]
@@ -236,7 +236,7 @@
                 "name": "analytic4-text",
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
-                  "text": "Detects when a user accesses a high-value secret for the first time, with no access to that\nsame secret by that user in the prior 14 days. High-value secrets are identified by a tunable\nname pattern (admin, prod, root, domain, backup, key, token, cert, password, service accounts).\nFirst-time access to a sensitive secret can indicate lateral movement or credential targeting.\nTune 'sensitivePattern' to match your high-value secret naming conventions."
+                  "text": "Detects when a user accesses a high-value secret for the first time, with no access to that\nsame secret by that user in the prior 14 days. First-time access to a sensitive secret can\nindicate lateral movement or credential targeting.\nDelinea reports no in-band sensitivity flag, so a secret is treated as high-value when its\nname or its folder matches 'sensitivePattern' (common privileged naming conventions), or\nwhen it appears in 'customSecretNames' / 'customFolders'. Both knobs are meant to be edited\nat deployment time - the pattern for substring matching, the lists for exact tenant-specific\nnames. The folder is read from the notes document, since the platform leaves the top-level\ntarget.containerName empty on secret events."
                 }
               }
             ]
@@ -302,7 +302,7 @@
                 "name": "huntingquery1-text",
                 "type": "Microsoft.Common.TextBlock",
                 "options": {
-                  "text": "Surfaces every account with failed authentication activity over the lookback window, ranked by\nfailure count and distinct source IPs - with no alerting threshold applied. The 'Failed\nauthentication spike' analytic rule only fires above a tuned threshold (e.g. 10 in 15m); this\nhunting query deliberately shows everything below that line so an analyst can spot low-and-slow\nbrute-force or credential-stuffing that stays under the radar. Pivot on accounts with many\nfailures from several IPs, or a single IP hitting many accounts (password spraying). This hunting query depends on DelineaPlatformConnector data connector (DelineaAuditEvents_CL Parser or Table)"
+                  "text": "Surfaces every account with failed authentication activity over the lookback window, ranked by\nfailure count and distinct source IPs - with no alerting threshold applied. The 'Failed\nauthentication spike' analytic rule only fires above a tuned threshold (e.g. 10 in 15m); this\nhunting query deliberately shows everything below that line so an analyst can spot low-and-slow\nbrute-force or credential-stuffing that stays under the radar. Scoped to authentication events\nto match that rule; for failures across every service use 'Delinea - Failed operations'. Pivot\non accounts with many failures from several IPs, or a single IP hitting many accounts (password\nspraying). This hunting query depends on DelineaPlatformConnector data connector (DelineaAuditEvents_CL Parser or Table)"
                 }
               }
             ]
@@ -432,34 +432,6 @@
                 }
               }
             ]
-          }
-        ]
-      },
-      {
-        "name": "playbooks",
-        "label": "Playbooks",
-        "subLabel": {
-          "preValidation": "Configure the playbooks",
-          "postValidation": "Done"
-        },
-        "bladeTitle": "Playbooks",
-        "elements": [
-          {
-            "name": "playbooks-text",
-            "type": "Microsoft.Common.TextBlock",
-            "options": {
-              "text": "This solution installs the Playbook templates to help implement your Security Orchestration, Automation and Response (SOAR) operations. After installing the solution, these will be deployed under Playbook Templates in the Automation blade in Microsoft Sentinel. They can be configured and managed from the Manage solution view in Content Hub."
-            }
-          },
-          {
-            "name": "playbooks-link",
-            "type": "Microsoft.Common.TextBlock",
-            "options": {
-              "link": {
-                "label": "Learn more",
-                "uri": "https://docs.microsoft.com/azure/sentinel/tutorial-respond-threats-playbook?WT.mc_id=Portal-Microsoft_Azure_CreateUIDef"
-              }
-            }
           }
         ]
       }

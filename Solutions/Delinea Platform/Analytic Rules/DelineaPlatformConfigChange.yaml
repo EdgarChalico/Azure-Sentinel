@@ -13,8 +13,8 @@ requiredDataConnectors:
   - connectorId: DelineaPlatformConnector
     dataTypes:
       - DelineaAuditEvents_CL
-queryFrequency: 1h
-queryPeriod: 1h
+queryFrequency: 15m
+queryPeriod: 30m
 triggerOperator: gt
 triggerThreshold: 0
 tactics:
@@ -28,7 +28,8 @@ query: |
   let configPattern = @"(?i)policy|profile|authentication|\bsso\b|saml|oidc|oauth|federation|identityprovider|\bidp\b|iprange|iprestriction|webhook|integration|connector|setting|configuration";
   let changeVerbs = @"(?i)\.(Added|Created|Updated|Modified|Changed|Set|Deleted|Removed|Enabled|Disabled)$|(added|created|updated|modified|changed|deleted|removed|enabled|disabled|configured)";
   DelineaAuditEvents_CL
-  | where TimeGenerated > ago(1h)
+  | where TimeGenerated > ago(30m)
+  | where ingestion_time() > ago(15m)
   | extend d = parse_json(RawData)
   | extend EventName = tostring(d.eventType.name), Actor = tostring(d.actor.name),
            Target = tostring(d.target.displayName), Msg = tostring(d.displayMessage),
@@ -51,5 +52,5 @@ customDetails:
   EventName: EventName
   Target: Target
   Message: Msg
-version: 1.0.0
+version: 1.1.0
 kind: Scheduled

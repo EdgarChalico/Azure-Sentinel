@@ -39,7 +39,7 @@
             "EndTimeAttributeName": "EndDateTime",
             "queryParameters": {
                 "api-version": "2.0",
-                "PageSize": "100",
+                "PageSize": "200",
                 "Page": "1",
                 "StartDateTime": "{_QueryWindowStartTime}",
                 "EndDateTime": "{_QueryWindowEndTime}",
@@ -58,7 +58,7 @@
         "paging": {
             "pagingType": "CountBasedPaging",
             "pageNumberParaName": "Page",
-            "pageSize": 100,
+            "pageSize": 200,
             "zeroBasedIndexing": false
         }
     }
