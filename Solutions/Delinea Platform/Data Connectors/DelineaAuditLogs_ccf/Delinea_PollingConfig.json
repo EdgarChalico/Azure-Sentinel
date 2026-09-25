@@ -39,8 +39,7 @@
             "EndTimeAttributeName": "EndDateTime",
             "queryParameters": {
                 "api-version": "2.0",
-                "PageSize": "200",
-                "Page": "1",
+                "PageSize": "100",
                 "StartDateTime": "{_QueryWindowStartTime}",
                 "EndDateTime": "{_QueryWindowEndTime}",
                 "Levels": "[[parameters('auditLevels')]",
@@ -58,7 +57,7 @@
         "paging": {
             "pagingType": "CountBasedPaging",
             "pageNumberParaName": "Page",
-            "pageSize": 200,
+            "pageSize": 100,
             "zeroBasedIndexing": false
         }
     }

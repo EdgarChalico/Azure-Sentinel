@@ -128,10 +128,10 @@
     "_workbookcontentProductId4": "[concat(take(variables('_solutionId'),50),'-','wb','-', uniqueString(concat(variables('_solutionId'),'-','Workbook','-',variables('_workbookContentId4'),'-', variables('workbookVersion4'))))]",
     "analyticRuleObject1": {
       "analyticRuleVersion1": "1.2.0",
-      "_analyticRulecontentId1": "9e7a1c34-1b2d-4f56-8a90-111122223333",
-      "analyticRuleId1": "[resourceId('Microsoft.SecurityInsights/AlertRuleTemplates', '9e7a1c34-1b2d-4f56-8a90-111122223333')]",
-      "analyticRuleTemplateSpecName1": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat(parameters('workspace'),'-ar-',uniquestring('9e7a1c34-1b2d-4f56-8a90-111122223333')))]",
-      "_analyticRulecontentProductId1": "[concat(take(variables('_solutionId'),50),'-','ar','-', uniqueString(concat(variables('_solutionId'),'-','AnalyticsRule','-','9e7a1c34-1b2d-4f56-8a90-111122223333','-', '1.2.0')))]"
+      "_analyticRulecontentId1": "7ab54aed-f97e-4202-a624-3cbd496c3b68",
+      "analyticRuleId1": "[resourceId('Microsoft.SecurityInsights/AlertRuleTemplates', '7ab54aed-f97e-4202-a624-3cbd496c3b68')]",
+      "analyticRuleTemplateSpecName1": "[concat(parameters('workspace'),'/Microsoft.SecurityInsights/',concat(parameters('workspace'),'-ar-',uniquestring('7ab54aed-f97e-4202-a624-3cbd496c3b68')))]",
+      "_analyticRulecontentProductId1": "[concat(take(variables('_solutionId'),50),'-','ar','-', uniqueString(concat(variables('_solutionId'),'-','AnalyticsRule','-','7ab54aed-f97e-4202-a624-3cbd496c3b68','-', '1.2.0')))]"
     },
     "analyticRuleObject2": {
       "analyticRuleVersion2": "1.0.0",
@@ -1363,8 +1363,7 @@
                   "EndTimeAttributeName": "EndDateTime",
                   "queryParameters": {
                     "api-version": "2.0",
-                    "PageSize": "200",
-                    "Page": "1",
+                    "PageSize": "100",
                     "StartDateTime": "{_QueryWindowStartTime}",
                     "EndDateTime": "{_QueryWindowEndTime}",
                     "Levels": "[[parameters('auditLevels')]",
@@ -1382,7 +1381,7 @@
                 "paging": {
                   "pagingType": "CountBasedPaging",
                   "pageNumberParaName": "Page",
-                  "pageSize": 200,
+                  "pageSize": 100,
                   "zeroBasedIndexing": false
                 }
               }
@@ -2043,10 +2042,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "DelineaPlatformConnector",
                     "dataTypes": [
                       "DelineaAuditEvents_CL"
-                    ]
+                    ],
+                    "connectorId": "DelineaPlatformConnector"
                   }
                 ],
                 "tactics": [
@@ -2060,28 +2059,28 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "Account",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
                         "columnName": "User"
                       }
-                    ]
+                    ],
+                    "entityType": "Account"
                   },
                   {
-                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "identifier": "Address",
                         "columnName": "SrcIP"
                       }
-                    ]
+                    ],
+                    "entityType": "IP"
                   }
                 ],
                 "customDetails": {
                   "TotalOperations": "TotalOperations",
-                  "DistinctSecrets": "DistinctSecrets",
-                  "Exports": "Exports"
+                  "Exports": "Exports",
+                  "DistinctSecrets": "DistinctSecrets"
                 }
               }
             },
@@ -2163,10 +2162,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "DelineaPlatformConnector",
                     "dataTypes": [
                       "DelineaAuditEvents_CL"
-                    ]
+                    ],
+                    "connectorId": "DelineaPlatformConnector"
                   }
                 ],
                 "tactics": [
@@ -2179,29 +2178,29 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "Account",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
                         "columnName": "Actor"
                       }
-                    ]
+                    ],
+                    "entityType": "Account"
                   },
                   {
-                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "identifier": "Address",
                         "columnName": "SrcIP"
                       }
-                    ]
+                    ],
+                    "entityType": "IP"
                   }
                 ],
                 "customDetails": {
-                  "BaselineAvg": "BaselineAvg",
                   "AnomalyThreshold": "AnomalyThreshold",
                   "TodayAccesses": "TodayAccesses",
                   "DeviationFactor": "DeviationFactor",
+                  "BaselineAvg": "BaselineAvg",
                   "DistinctSecrets": "DistinctSecrets"
                 }
               }
@@ -2284,10 +2283,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "DelineaPlatformConnector",
                     "dataTypes": [
                       "DelineaAuditEvents_CL"
-                    ]
+                    ],
+                    "connectorId": "DelineaPlatformConnector"
                   }
                 ],
                 "tactics": [
@@ -2298,28 +2297,28 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "Account",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
                         "columnName": "Actor"
                       }
-                    ]
+                    ],
+                    "entityType": "Account"
                   },
                   {
-                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "identifier": "Address",
                         "columnName": "SrcIP"
                       }
-                    ]
+                    ],
+                    "entityType": "IP"
                   }
                 ],
                 "customDetails": {
-                  "FailReasons": "FailReasons",
                   "DistinctSourceIPs": "DistinctSourceIPs",
-                  "Failures": "Failures"
+                  "Failures": "Failures",
+                  "FailReasons": "FailReasons"
                 }
               }
             },
@@ -2401,10 +2400,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "DelineaPlatformConnector",
                     "dataTypes": [
                       "DelineaAuditEvents_CL"
-                    ]
+                    ],
+                    "connectorId": "DelineaPlatformConnector"
                   }
                 ],
                 "tactics": [
@@ -2418,7 +2417,6 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "Account",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
@@ -2428,10 +2426,10 @@
                         "identifier": "FullName",
                         "columnName": "ActorEmail"
                       }
-                    ]
+                    ],
+                    "entityType": "Account"
                   },
                   {
-                    "entityType": "File",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
@@ -2441,43 +2439,44 @@
                         "identifier": "Directory",
                         "columnName": "Folder"
                       }
-                    ]
+                    ],
+                    "entityType": "File"
                   },
                   {
-                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "identifier": "Address",
                         "columnName": "SrcIP"
                       }
-                    ]
+                    ],
+                    "entityType": "IP"
                   },
                   {
-                    "entityType": "Host",
                     "fieldMappings": [
                       {
                         "identifier": "HostName",
                         "columnName": "TargetHost"
                       }
-                    ]
+                    ],
+                    "entityType": "Host"
                   },
                   {
-                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "identifier": "Address",
                         "columnName": "TargetIP"
                       }
-                    ]
+                    ],
+                    "entityType": "IP"
                   }
                 ],
                 "customDetails": {
-                  "SecretName": "SecretName",
-                  "SecretKey": "SecretKey",
-                  "Folder": "Folder",
                   "Accesses": "Accesses",
-                  "AccountNames": "AccountNames",
-                  "TargetServers": "TargetServers"
+                  "Folder": "Folder",
+                  "SecretName": "SecretName",
+                  "TargetServers": "TargetServers",
+                  "SecretKey": "SecretKey",
+                  "AccountNames": "AccountNames"
                 }
               }
             },
@@ -2559,10 +2558,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "DelineaPlatformConnector",
                     "dataTypes": [
                       "DelineaAuditEvents_CL"
-                    ]
+                    ],
+                    "connectorId": "DelineaPlatformConnector"
                   }
                 ],
                 "tactics": [
@@ -2575,22 +2574,22 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "Account",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
                         "columnName": "Actor"
                       }
-                    ]
+                    ],
+                    "entityType": "Account"
                   },
                   {
-                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "identifier": "Address",
                         "columnName": "SrcIP"
                       }
-                    ]
+                    ],
+                    "entityType": "IP"
                   }
                 ],
                 "customDetails": {
@@ -2678,10 +2677,10 @@
                 "status": "Available",
                 "requiredDataConnectors": [
                   {
-                    "connectorId": "DelineaPlatformConnector",
                     "dataTypes": [
                       "DelineaAuditEvents_CL"
-                    ]
+                    ],
+                    "connectorId": "DelineaPlatformConnector"
                   }
                 ],
                 "tactics": [
@@ -2695,22 +2694,22 @@
                 ],
                 "entityMappings": [
                   {
-                    "entityType": "Account",
                     "fieldMappings": [
                       {
                         "identifier": "Name",
                         "columnName": "Actor"
                       }
-                    ]
+                    ],
+                    "entityType": "Account"
                   },
                   {
-                    "entityType": "IP",
                     "fieldMappings": [
                       {
                         "identifier": "Address",
                         "columnName": "SrcIP"
                       }
-                    ]
+                    ],
+                    "entityType": "IP"
                   }
                 ],
                 "customDetails": {
